@@ -110,8 +110,8 @@ void ComputeParticleSimulator::Initialize(const char * title)
     compute_prog = glCreateProgram();
 
     static const char compute_shader_source[] =
+        "#version 430 core\n"
         STRINGIZE(
-#version 430 core\n
 
 layout (std140, binding = 0) uniform attractor_block
 {

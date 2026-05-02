@@ -156,8 +156,8 @@ void MipmapExample::Initialize(const char * title)
 
 void MipmapExample::Display(bool auto_redraw)
 {
-    static const unsigned int start_time = GetTickCount();
-    float t = float((GetTickCount() - start_time)) / float(0x3FFF);
+    static const unsigned int start_time = app_time();
+    float t = float((app_time() - start_time)) / float(0x3FFF);
     static const vmath::vec3 X(1.0f, 0.0f, 0.0f);
     static const vmath::vec3 Y(0.0f, 1.0f, 0.0f);
     static const vmath::vec3 Z(0.0f, 0.0f, 1.0f);

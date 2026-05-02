@@ -30,7 +30,7 @@ unsigned int VermilionApplication::app_time()
 
     return (unsigned int)(currentTime - m_appStartTime);
 #else
-    return 0;
+    return (unsigned int)(glfwGetTime() * 1000.0);
 #endif
 }
 

@@ -585,64 +585,64 @@ void vglLoadDDS(const char* filename, vglImageData* image)
 
     fread(&file_header, sizeof(file_header.magic) + sizeof(file_header.std_header), 1, f);
 
-    if (file_header.magic != DDS_MAGIC)
+    do
     {
-        goto done_close_file;
-    }
+        if (file_header.magic != DDS_MAGIC)
+            break;
 
-    if (file_header.std_header.ddspf.dwFourCC == DDS_FOURCC_DX10)
-    {
-        fread(&file_header.dxt10_header, sizeof(file_header.dxt10_header), 1, f);
-    }
+        if (file_header.std_header.ddspf.dwFourCC == DDS_FOURCC_DX10)
+        {
+            fread(&file_header.dxt10_header, sizeof(file_header.dxt10_header), 1, f);
+        }
 
-    if (!vgl_DDSHeaderToImageDataHeader(file_header, image))
-        goto done_close_file;
+        if (!vgl_DDSHeaderToImageDataHeader(file_header, image))
+            break;
 
-    image->target = vgl_GetTargetFromDDSHeader(file_header);
+        image->target = vgl_GetTargetFromDDSHeader(file_header);
 
-    if (image->target == GL_NONE)
-        goto done_close_file;
+        if (image->target == GL_NONE)
+            break;
 
-    size_t current_pos = ftell(f);
-    size_t file_size;
-    fseek(f, 0, SEEK_END);
-    file_size = ftell(f);
-    fseek(f, (long)current_pos, SEEK_SET);
+        size_t current_pos = ftell(f);
+        size_t file_size;
+        fseek(f, 0, SEEK_END);
+        file_size = ftell(f);
+        fseek(f, (long)current_pos, SEEK_SET);
 
-    image->totalDataSize = file_size - current_pos;
-    image->mip[0].data = new uint8_t [image->totalDataSize];
+        image->totalDataSize = file_size - current_pos;
+        image->mip[0].data = new uint8_t [image->totalDataSize];
 
-    fread(image->mip[0].data, file_size - current_pos, 1, f);
+        fread(image->mip[0].data, file_size - current_pos, 1, f);
 
-    int level;
-    GLubyte * ptr = reinterpret_cast<GLubyte*>(image->mip[0].data);
+        int level;
+        GLubyte * ptr = reinterpret_cast<GLubyte*>(image->mip[0].data);
 
-    int width = file_header.std_header.width;
-    int height = file_header.std_header.height;
-    int depth = file_header.std_header.depth;
+        int width = file_header.std_header.width;
+        int height = file_header.std_header.height;
+        int depth = file_header.std_header.depth;
 
-    image->sliceStride = 0;
+        image->sliceStride = 0;
 
-    if (image->mipLevels == 0)
-    {
-        image->mipLevels = 1;
-    }
+        if (image->mipLevels == 0)
+        {
+            image->mipLevels = 1;
+        }
 
-    for (level = 0; level < image->mipLevels; ++level)
-    {
-        image->mip[level].data = ptr;
-        image->mip[level].width = width;
-        image->mip[level].height = height;
-        image->mip[level].depth = depth;
-        image->mip[level].mipStride = vgl_GetDDSStride(file_header, width) * height;
-        image->sliceStride += image->mip[level].mipStride;
-        ptr += image->mip[level].mipStride;
-        width >>= 1;
-        height >>= 1;
-        depth >>= 1;
-    }
+        for (level = 0; level < image->mipLevels; ++level)
+        {
+            image->mip[level].data = ptr;
+            image->mip[level].width = width;
+            image->mip[level].height = height;
+            image->mip[level].depth = depth;
+            image->mip[level].mipStride = vgl_GetDDSStride(file_header, width) * height;
+            image->sliceStride += image->mip[level].mipStride;
+            ptr += image->mip[level].mipStride;
+            width >>= 1;
+            height >>= 1;
+            depth >>= 1;
+        }
+    } while (0);
 
-done_close_file:
     fclose(f);
 }
 
