@@ -1,0 +1,12 @@
+.git
+build
+debugBuild
+debugBuildInstall
+debugBuildInstall/*
+*.tar
+__pycache__
+**/__pycache__
+**/.ruff_cache
+**/.pytest_cache
+python/venv
+**/imgui.ini

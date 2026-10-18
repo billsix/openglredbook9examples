@@ -1,0 +1,122 @@
+"""04-gouraud-float — per-vertex color as float vec3.
+
+Port of ``src/04-gouraud-float/04-gouraud-float.cpp``. Same
+geometry as 04-gouraud but the per-vertex color is a ``GLfloat[3]``
+instead of ``GLubyte[4]``. Demonstrates that the vertex shader sees
+``vColor`` as a ``vec4`` regardless of source type, and that 3-component
+attributes get a default ``a = 1.0``.
+"""
+
+import ctypes
+from typing import override
+
+# glfw before imgui_bundle: pyglfw must bind the system GLFW, not the
+# X11-only copy imgui_bundle bundles (gl-and-imgui-gotchas.md §1).
+import glfw  # noqa: F401
+import numpy as np
+import OpenGL.GL as GL
+from imgui_bundle import imgui
+
+from redbook9 import application, common
+
+VPOSITION: int = 0
+VCOLOR: int = 1
+NUM_VERTICES: int = 6
+
+
+class GouraudFloat(application.Application):
+    @override
+    def initialize(self, title: str | None = None) -> None:
+        super().initialize(title)
+
+        self.vao: int = GL.glGenVertexArrays(1)
+        GL.glBindVertexArray(self.vao)
+
+        # color (vec3 float) + position (vec2 float). Stride = 20 bytes.
+        stride: int = 12 + 8
+
+        records = [
+            (1.00, 0.00, 0.00, -0.90, -0.90),
+            (0.00, 1.00, 0.00, 0.85, -0.90),
+            (0.00, 0.00, 1.00, -0.90, 0.85),
+            (0.04, 0.04, 0.04, 0.90, -0.85),
+            (0.40, 0.40, 0.40, 0.90, 0.90),
+            (1.00, 1.00, 1.00, -0.85, 0.90),
+        ]
+        verts: np.ndarray = np.array(records, dtype=np.float32)
+        # records is shape (6, 5); flat bytes already match the C++
+        # struct layout: 12 bytes color, 8 bytes position.
+
+        self.vbo: int = GL.glGenBuffers(1)
+        GL.glBindBuffer(GL.GL_ARRAY_BUFFER, self.vbo)
+        GL.glBufferData(
+            target=GL.GL_ARRAY_BUFFER,
+            size=verts.nbytes,
+            data=verts,
+            usage=GL.GL_STATIC_DRAW,
+        )
+
+        # The same files the C++ ShaderInfo table names (shared with
+        # 04-gouraud, as in the C++).
+        self.program: int = common.compile_program_from_files(
+            vs=common.media_path("shaders", "gouraud", "gouraud.vert"),
+            fs=common.media_path("shaders", "gouraud", "gouraud.frag"),
+        )
+        GL.glUseProgram(self.program)
+
+        GL.glVertexAttribPointer(
+            index=VCOLOR,
+            size=3,
+            type=GL.GL_FLOAT,
+            normalized=GL.GL_TRUE,
+            stride=stride,
+            pointer=ctypes.c_void_p(0),
+        )
+        GL.glVertexAttribPointer(
+            index=VPOSITION,
+            size=2,
+            type=GL.GL_FLOAT,
+            normalized=GL.GL_FALSE,
+            stride=stride,
+            pointer=ctypes.c_void_p(12),
+        )
+        GL.glEnableVertexAttribArray(VCOLOR)
+        GL.glEnableVertexAttribArray(VPOSITION)
+
+        self._mode: common.GLenum = GL.GL_FILL
+
+    @override
+    def display(self, auto_redraw: bool = True) -> None:
+
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        GL.glBindVertexArray(self.vao)
+        GL.glDrawArrays(GL.GL_TRIANGLES, 0, NUM_VERTICES)
+        super().display(auto_redraw)
+
+    @override
+    def draw_controls(self) -> None:
+        # The C++'s M key as a widget (rules §3); M stays as the accelerator.
+        changed, wire = imgui.checkbox(
+            label="Wireframe (M)", v=self._mode == GL.GL_LINE
+        )
+        if changed:
+            self._mode = GL.GL_LINE if wire else GL.GL_FILL
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, self._mode)
+
+    @override
+    def on_key(self, key: int, scancode: int, action: int, mods: int) -> None:
+        if action == self.PRESS and key == self.KEY_M:
+            self._mode = GL.GL_LINE if self._mode == GL.GL_FILL else GL.GL_FILL
+            GL.glPolygonMode(GL.GL_FRONT_AND_BACK, self._mode)
+            return
+        super().on_key(key, scancode, action, mods)
+
+    @override
+    def finalize(self) -> None:
+        GL.glDeleteBuffers(1, [self.vbo])
+        GL.glDeleteVertexArrays(1, [self.vao])
+        GL.glDeleteProgram(self.program)
+
+
+if __name__ == "__main__":
+    application.run(cls=GouraudFloat, title="Gouraud (Float) Example")

@@ -1,5 +1,15 @@
 build/*
 !build/templates
+debugBuild/
+debugBuildInstall/
 bin/*
 !bin/media/
 *.lib
+*.tar
+
+# Python port cruft (the port also has its own python/.gitignore)
+**/__pycache__/
+**/*.py[cod]
+**/.ruff_cache/
+**/imgui.ini
+python/venv/
