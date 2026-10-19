@@ -35,8 +35,8 @@ class Gouraud(application.Application):
 
         # Build the interleaved buffer manually as raw bytes so the
         # offsets line up with the C++ struct.
-        verts = bytearray()
-        records = [
+        verts: bytearray = bytearray()
+        records: list[tuple[int, int, int, int, float, float]] = [
             (255, 0, 0, 255, -0.90, -0.90),
             (0, 255, 0, 255, 0.85, -0.90),
             (0, 0, 255, 255, -0.90, 0.85),

@@ -231,7 +231,7 @@ class CubeMapExample(application.Application):
             @ vmath.rotate(angle_degrees=80.0 * 3.0 * t, ax=0, ay=1, az=0)
             @ vmath.rotate(angle_degrees=70.0 * 3.0 * t, ax=0, ay=0, az=1)
         )
-        mvp = (
+        mvp: np.ndarray = (
             vmath.perspective(
                 fovy_degrees=35.0,
                 aspect=1.0 / max(self.aspect, 1e-6),

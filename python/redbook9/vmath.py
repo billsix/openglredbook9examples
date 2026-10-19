@@ -44,7 +44,7 @@ def translate(
         # y and z are omitted. ty cannot narrow the scalar members of
         # the union out of x from the y/z check.
         x, y, z = float(x[0]), float(x[1]), float(x[2])  # ty: ignore[not-subscriptable]
-    m = identity()
+    m: np.ndarray = identity()
     m[0, 3] = x
     m[1, 3] = y
     m[2, 3] = z
@@ -64,7 +64,7 @@ def scale(
             x, y, z = float(x[0]), float(x[1]), float(x[2])  # ty: ignore[not-subscriptable]
         else:
             x = y = z = float(x)
-    m = identity()
+    m: np.ndarray = identity()
     m[0, 0] = x
     m[1, 1] = y
     m[2, 2] = z
@@ -115,9 +115,9 @@ def _rotate_axis(
     ax, ay, az = ax / n, ay / n, az / n
     a: float = math.radians(angle_degrees)
     c: float = math.cos(a)
-    s = math.sin(a)
-    omc = 1.0 - c
-    m = identity()
+    s: float = math.sin(a)
+    omc: float = 1.0 - c
+    m: np.ndarray = identity()
     m[0, 0] = c + ax * ax * omc
     m[0, 1] = ax * ay * omc - az * s
     m[0, 2] = ax * az * omc + ay * s
@@ -133,8 +133,8 @@ def _rotate_axis(
 def perspective(
     fovy_degrees: float, aspect: float, near: float, far: float
 ) -> np.ndarray:
-    f = 1.0 / math.tan(math.radians(fovy_degrees) * 0.5)
-    m = np.zeros((4, 4), dtype=np.float32)
+    f: float = 1.0 / math.tan(math.radians(fovy_degrees) * 0.5)
+    m: np.ndarray = np.zeros((4, 4), dtype=np.float32)
     m[0, 0] = f / aspect
     m[1, 1] = f
     m[2, 2] = (far + near) / (near - far)
@@ -171,7 +171,7 @@ def frustum(
     near: float,
     far: float,
 ) -> np.ndarray:
-    m = np.zeros((4, 4), dtype=np.float32)
+    m: np.ndarray = np.zeros((4, 4), dtype=np.float32)
     m[0, 0] = (2.0 * near) / (right - left)
     m[0, 2] = (right + left) / (right - left)
     m[1, 1] = (2.0 * near) / (top - bottom)
@@ -190,7 +190,7 @@ def ortho(
     near: float,
     far: float,
 ) -> np.ndarray:
-    m = identity()
+    m: np.ndarray = identity()
     m[0, 0] = 2.0 / (right - left)
     m[1, 1] = 2.0 / (top - bottom)
     m[2, 2] = -2.0 / (far - near)
@@ -209,18 +209,18 @@ def lookat(
     center: np.ndarray = np.asarray(center, dtype=np.float32)
     up: np.ndarray = np.asarray(up, dtype=np.float32)
 
-    f = center - eye
+    f: np.ndarray = center - eye
     f /= np.linalg.norm(f)
-    upn = up / np.linalg.norm(up)
+    upn: np.ndarray = up / np.linalg.norm(up)
     # ``vmath::lookat`` does NOT normalise ``s`` (nor ``u``): when the view
     # direction is not perpendicular to ``up``, the C++ matrix scales eye x/y
     # by ``sin(angle(f, up))``. That is the picture the demos draw
     # (04-shadowmap's lit footprint on the ground depends on it), so the
     # port reproduces it rather than the textbook orthonormal basis.
-    s = np.cross(f, upn)
-    u = np.cross(s, f)
+    s: np.ndarray = np.cross(f, upn)
+    u: np.ndarray = np.cross(s, f)
 
-    m = identity()
+    m: np.ndarray = identity()
     m[0, :3] = s
     m[1, :3] = u
     m[2, :3] = -f
@@ -244,5 +244,7 @@ def upload_array(
 ) -> None:
     """Upload an array of mat4 (e.g. ``mat4[N]`` uniform). Accepts a
     list of (4,4) arrays or a single (N,4,4) array."""
-    arr = np.ascontiguousarray(np.stack(list(mats), axis=0), dtype=np.float32)
+    arr: np.ndarray = np.ascontiguousarray(
+        np.stack(list(mats), axis=0), dtype=np.float32
+    )
     GL.glUniformMatrix4fv(location, arr.shape[0], GL.GL_TRUE, arr)

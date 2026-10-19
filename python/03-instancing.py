@@ -97,9 +97,9 @@ class InstancingExample(application.Application):
         # Build colors[] (also used to seed weights initial-data).
         colors: np.ndarray = np.zeros((INSTANCE_COUNT, 4), dtype=np.float32)
         for n in range(INSTANCE_COUNT):
-            a = float(n) / 4.0
-            b = float(n) / 5.0
-            c = float(n) / 6.0
+            a: float = float(n) / 4.0
+            b: float = float(n) / 5.0
+            c: float = float(n) / 6.0
             colors[n, 0] = 0.5 * (math.sin(a + 1.0) + 1.0)
             colors[n, 1] = 0.5 * (math.sin(b + 2.0) + 1.0)
             colors[n, 2] = 0.5 * (math.sin(c + 3.0) + 1.0)
@@ -160,9 +160,9 @@ class InstancingExample(application.Application):
         weights: np.ndarray = np.zeros((INSTANCE_COUNT, 4), dtype=np.float32)
         two_pi: float = 6.28318531
         for n in range(INSTANCE_COUNT):
-            a = n / 4.0
-            b = n / 5.0
-            c = n / 6.0
+            a: float = n / 4.0
+            b: float = n / 5.0
+            c: float = n / 6.0
             weights[n, 0] = 0.5 * (math.sin(t * two_pi * 8.0 + a) + 1.0)
             weights[n, 1] = 0.5 * (math.sin(t * two_pi * 26.0 + b) + 1.0)
             weights[n, 2] = 0.5 * (math.sin(t * two_pi * 21.0 + c) + 1.0)
@@ -184,7 +184,7 @@ class InstancingExample(application.Application):
         GL.glUseProgram(self.render_prog)
 
         # Build the four model matrices.
-        mats = []
+        mats: list[np.ndarray] = []
         for n in range(4):
             m: np.ndarray = (
                 vmath.scale(5.0)

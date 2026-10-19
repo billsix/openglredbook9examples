@@ -14,6 +14,7 @@ from typing import override
 
 import numpy as np
 import OpenGL.GL as GL
+from OpenGL.constant import Constant
 
 from redbook9 import application, common, vmath
 
@@ -139,15 +140,15 @@ class MipFiltersExample(application.Application):
 
         # Build a checkerboard-of-shades for each level.
         for i in range(7):
-            size = 64 >> i
+            size: int = 64 >> i
             data: np.ndarray = np.zeros((size, size, 4), dtype=np.uint8)
             for j in range(size):
                 for k in range(size):
-                    v = (k ^ (64 - j)) & 0xFF
+                    v: int = (k ^ (64 - j)) & 0xFF
                     # The C++ multiplies by 0x04040404 → fills R,G,B,A
                     # with the same byte (clamped to 0xFF * 4 = 0x3FC,
                     # truncated to 0xFC).
-                    val = (v * 4) & 0xFF
+                    val: int = (v * 4) & 0xFF
                     data[j, k] = [val, val, val, val]
             GL.glTexSubImage2D(
                 GL.GL_TEXTURE_2D,
@@ -182,7 +183,7 @@ class MipFiltersExample(application.Application):
         GL.glDisable(GL.GL_CULL_FACE)
         GL.glUseProgram(self.program)
 
-        tc = vmath.translate(x=0.0, y=0.0, z=-60.0) @ vmath.rotate(
+        tc: np.ndarray = vmath.translate(x=0.0, y=0.0, z=-60.0) @ vmath.rotate(
             angle_degrees=80.0 * 3.0 * 0.03, ax=1, ay=0, az=0
         )
         tc = (
@@ -202,7 +203,7 @@ class MipFiltersExample(application.Application):
         # Cycle min-filter through 4 modes.
         cycle: float = math.fmod(t, 1.0)
         if cycle < 0.25:
-            min_f = GL.GL_NEAREST_MIPMAP_NEAREST
+            min_f: int | Constant = GL.GL_NEAREST_MIPMAP_NEAREST
         elif cycle < 0.5:
             min_f = GL.GL_LINEAR_MIPMAP_NEAREST
         elif cycle < 0.75:

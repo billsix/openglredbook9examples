@@ -154,13 +154,15 @@ def _make_fur_texture() -> np.ndarray:
     """Reproduce the C++ ``rand()``-fed fur texture. We don't try to
     match libc's rand exactly — the visual is a stochastic strand
     pattern. Using numpy gives a similar look."""
-    rng = np.random.RandomState(0)
+    rng: np.random.RandomState = np.random.RandomState(0)
     tex: np.ndarray = np.zeros((1024, 1024, 4), dtype=np.uint8)
     for n in range(256):
         # Each layer-strength gets ~1270 random pixels.
-        xs = rng.randint(0, 1024, size=1270)
-        ys = rng.randint(0, 1024, size=1270)
-        rgb = (rng.randint(0, 0x40, size=(1270, 3)) + 0xC0).astype(np.uint8)
+        xs: np.ndarray = rng.randint(0, 1024, size=1270)
+        ys: np.ndarray = rng.randint(0, 1024, size=1270)
+        rgb: np.ndarray = (rng.randint(0, 0x40, size=(1270, 3)) + 0xC0).astype(
+            np.uint8
+        )
         tex[ys, xs, :3] = rgb
         tex[ys, xs, 3] = n
     return tex
@@ -191,7 +193,7 @@ class FurApplication(application.Application):
         )
 
         self.fur_texture: int = GL.glGenTextures(1)
-        tex_data = _make_fur_texture()
+        tex_data: np.ndarray = _make_fur_texture()
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.fur_texture)
         GL.glTexImage2D(
             GL.GL_TEXTURE_2D,

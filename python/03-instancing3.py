@@ -178,9 +178,9 @@ class InstanceIDExample(application.Application):
         # because the shader reconstructs the matrix from columns).
         mats: np.ndarray = np.zeros((INSTANCE_COUNT, 4, 4), dtype=np.float32)
         for n in range(INSTANCE_COUNT):
-            a = 50.0 * n / 4.0
-            b = 50.0 * n / 5.0
-            c = 50.0 * n / 6.0
+            a: float = 50.0 * n / 4.0
+            b: float = 50.0 * n / 5.0
+            c: float = 50.0 * n / 6.0
             m: np.ndarray = (
                 vmath.rotate(angle_degrees=a + t * 360.0, ax=1, ay=0, az=0)
                 @ vmath.rotate(angle_degrees=b + t * 360.0, ax=0, ay=1, az=0)

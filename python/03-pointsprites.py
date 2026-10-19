@@ -23,15 +23,17 @@ POINT_COUNT: int = 4
 def _xorshift_floats(n: int, seed: int = 0x13371337) -> list[float]:
     """Reproduce the C++ ``random_float()`` deterministic stream so
     the four points land in the same locations as in the C++ demo."""
-    out = []
-    s = seed
+    out: list[float] = []
+    s: int = seed
     for _ in range(n):
         s = (s * 16807) & 0xFFFFFFFF
-        tmp = (s ^ (s >> 4) ^ ((s << 15) & 0xFFFFFFFF)) & 0xFFFFFFFF
-        bits = (tmp >> 9) | 0x3F800000
+        tmp: int = (s ^ (s >> 4) ^ ((s << 15) & 0xFFFFFFFF)) & 0xFFFFFFFF
+        bits: int = (tmp >> 9) | 0x3F800000
         # Bitcast to float to match the C++ trick
-        f = np.frombuffer(np.uint32(bits).tobytes(), dtype=np.float32)[0]
-        out.append(float(f) - 1.0)
+        out.append(
+            float(np.frombuffer(np.uint32(bits).tobytes(), dtype=np.float32)[0])
+            - 1.0
+        )
     return out
 
 
@@ -63,7 +65,7 @@ class PointSpriteExample(application.Application):
         )
 
         # Random points reproducing the C++ stream.
-        floats = _xorshift_floats(POINT_COUNT * 3)
+        floats: list[float] = _xorshift_floats(POINT_COUNT * 3)
         positions: np.ndarray = np.zeros((POINT_COUNT, 4), dtype=np.float32)
         for i in range(POINT_COUNT):
             positions[i, 0] = floats[3 * i + 0] * 2.0 - 1.0

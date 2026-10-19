@@ -137,7 +137,7 @@ class ViewportArrayApp(application.Application):
             near=1.0,
             far=5000.0,
         )
-        mats = []
+        mats: list[np.ndarray] = []
         two_pi: float = 6.28318531
         import math
 

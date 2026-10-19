@@ -13,6 +13,7 @@ from typing import override
 
 import numpy as np
 import OpenGL.GL as GL
+from OpenGL.constant import Constant
 
 from redbook9 import application, common
 
@@ -158,14 +159,14 @@ class TextureWrapping(application.Application):
 
     @override
     def display(self, auto_redraw: bool = True) -> None:
-        ticks = self.app_time()
+        ticks: int = self.app_time()
 
         GL.glClearColor(0.3, 0.3, 0.3, 1.0)
         GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)  # ty: ignore[unsupported-operator]  # PyOpenGL's Constant lacks __or__ in ty's view; at runtime `|` on GL bitmask constants yields a plain int
         GL.glDisable(GL.GL_CULL_FACE)
         GL.glUseProgram(self.program)
 
-        mode = self._wrap_modes[(ticks >> 11) & 0x3]
+        mode: int | Constant = self._wrap_modes[(ticks >> 11) & 0x3]
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, mode)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, mode)
 

@@ -127,9 +127,10 @@ def toggle_fullscreen(window, state: WindowState) -> None:
     the way back to return to the saved windowed geometry.
     """
     if state.fullscreen:
+        # None = windowed mode; glfw stubs type `monitor` as non-optional.
         glfw.set_window_monitor(
             window,
-            None,
+            None,  # ty: ignore[invalid-argument-type]
             state.saved_x,
             state.saved_y,
             state.saved_w,
@@ -330,8 +331,10 @@ def bind_camera_inputs(window, camera: Camera) -> None:
     with any previously-registered scroll callback (so demos that have
     their own scroll handler keep it). Call once at startup, after
     ``glfw.create_window`` and the demo's other callbacks."""
+    # None clears the scroll callback; glfw stubs type it as non-optional.
     prev_cb: typing.Any = glfw.set_scroll_callback(  # previous scroll callback
-        window, None
+        window,
+        None,  # ty: ignore[invalid-argument-type]
     )
 
     def _scroll_cb(_win, x_offset: float, y_offset: float) -> None:

@@ -231,12 +231,14 @@ class TransformFeedbackExample(application.Application):
             )
 
         # Seed buffer 0 with random points.
-        seed = np.random.RandomState(0x13371337)
-        random_dirs = (
+        seed: np.random.RandomState = np.random.RandomState(0x13371337)
+        random_dirs: np.ndarray = (
             seed.random_sample((POINT_COUNT, 3)).astype(np.float32) * 2.0 - 1.0
         )
         random_dirs /= np.linalg.norm(random_dirs, axis=1, keepdims=True)
-        magnitudes = seed.random_sample((POINT_COUNT, 1)).astype(np.float32)
+        magnitudes: np.ndarray = seed.random_sample((POINT_COUNT, 1)).astype(
+            np.float32
+        )
         random_dirs *= magnitudes
         # buffer entry: vec4 position, vec3 velocity
         positions: np.ndarray = np.zeros((POINT_COUNT, 4), dtype=np.float32)
@@ -244,7 +246,7 @@ class TransformFeedbackExample(application.Application):
             [-0.5, 40.0, 0.0], dtype=np.float32
         )
         positions[:, 3] = 1.0
-        velocities = random_dirs.copy()
+        velocities: np.ndarray = random_dirs.copy()
         velocities[:, 1] *= 0.3
         velocities[:, 2] *= 0.3
         # Pack into a single byte buffer of stride 28.

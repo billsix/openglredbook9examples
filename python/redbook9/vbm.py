@@ -35,6 +35,7 @@ Usage::
 from __future__ import annotations
 
 import ctypes
+import io
 import struct
 from typing import List
 
@@ -45,9 +46,9 @@ from OpenGL.constant import Constant
 #: resolve to `OpenGL.constant.Constant`, not `int`, so a plain `int`
 #: annotation rejects them. Same house pattern as
 #: src/modelviewprojection/wxapp.py.
-GLenum = int | Constant
+type GLenum = int | Constant
 
-_VBM_MAGIC_NEW = 0x314D4253  # 'SBM1'
+_VBM_MAGIC_NEW: int = 0x314D4253  # 'SBM1'
 
 # Header layouts. Each Python ``struct`` format omits the magic when
 # already consumed; we read magic as a separate u32 to dispatch on it.
@@ -69,11 +70,11 @@ _VBM_MAGIC_NEW = 0x314D4253  # 'SBM1'
 # Old (deprecated) header has an extra u32 ``num_chunks`` between
 # ``num_frames`` and ``num_vertices``.
 
-_NEW_HEADER_FMT = "<II64sIIIIIII"  # 4 + 4 + 64 + 4*7 = 100 bytes
-_OLD_HEADER_FMT = "<II64sIIIIIIII"  # one more u32: 104 bytes
+_NEW_HEADER_FMT: str = "<II64sIIIIIII"  # 4 + 4 + 64 + 4*7 = 100 bytes
+_OLD_HEADER_FMT: str = "<II64sIIIIIIII"  # one more u32: 104 bytes
 
-_ATTRIB_FMT = "<64sIII"  # name[64], type, components, flags  (76)
-_FRAME_FMT = "<III"  # first, count, flags                 (12)
+_ATTRIB_FMT: str = "<64sIII"  # name[64], type, components, flags  (76)
+_FRAME_FMT: str = "<III"  # first, count, flags                 (12)
 
 
 class VBObject:
@@ -107,7 +108,7 @@ class VBObject:
         any *_index argument skips that attribute. Returns True on
         success, False if the file could not be opened."""
         try:
-            f = open(filename, mode="rb")
+            f: io.BufferedReader = open(filename, mode="rb")
         except FileNotFoundError:
             return False
         try:
@@ -126,7 +127,7 @@ class VBObject:
             # declare ``size = 92`` (no ``num_materials``/``flags``), so a
             # full-struct unpack would read those two fields from the start
             # of the attribute table.
-            size = struct.unpack_from("<I", data, offset=4)[0]
+            size: int = struct.unpack_from("<I", data, offset=4)[0]
             full_size: int = struct.calcsize(_NEW_HEADER_FMT)
             header_bytes: bytes = data[: min(size, full_size)].ljust(
                 full_size, b"\x00"
@@ -143,7 +144,7 @@ class VBObject:
                 num_materials,
                 flags,
             ) = struct.unpack_from(_NEW_HEADER_FMT, header_bytes, offset=0)
-            header_size = size
+            header_size: int = size
         else:
             (
                 _magic,
@@ -172,19 +173,21 @@ class VBObject:
         self.num_materials = num_materials
 
         # Attribute table starts at file offset ``header_size``.
-        attr_table_off = header_size
-        attr_size = struct.calcsize(_ATTRIB_FMT)
+        attr_table_off: int = header_size
+        attr_size: int = struct.calcsize(_ATTRIB_FMT)
         self.attribs = []
         for i in range(num_attribs):
             name_b, atype, components, aflags = struct.unpack_from(
                 _ATTRIB_FMT, data, offset=attr_table_off + i * attr_size
             )
-            name = name_b.split(b"\x00", 1)[0].decode("ascii", errors="replace")
+            name: str = name_b.split(b"\x00", 1)[0].decode(
+                "ascii", errors="replace"
+            )
             self.attribs.append((name, atype, components, aflags))
 
         # Frame table follows attribute table.
-        frame_table_off = attr_table_off + num_attribs * attr_size
-        frame_size = struct.calcsize(_FRAME_FMT)
+        frame_table_off: int = attr_table_off + num_attribs * attr_size
+        frame_size: int = struct.calcsize(_FRAME_FMT)
         self.frames = []
         for i in range(num_frames):
             first, count, fflags = struct.unpack_from(
@@ -193,7 +196,7 @@ class VBObject:
             self.frames.append((first, count, fflags))
 
         # Raw vertex data follows the frame table.
-        raw_off = frame_table_off + num_frames * frame_size
+        raw_off: int = frame_table_off + num_frames * frame_size
 
         # Compute total attribute-blob size (each attribute is a flat
         # block of ``components * num_vertices * sizeof(GLfloat)`` —
@@ -206,9 +209,13 @@ class VBObject:
 
         # Index data follows the attribute blob.
         if num_indices:
-            element_size = 2 if self.index_type == GL.GL_UNSIGNED_SHORT else 4
-            idx_off = raw_off + total
-            idx_blob = data[idx_off : idx_off + num_indices * element_size]
+            element_size: int = (
+                2 if self.index_type == GL.GL_UNSIGNED_SHORT else 4
+            )
+            idx_off: int = raw_off + total
+            idx_blob: bytes | None = data[
+                idx_off : idx_off + num_indices * element_size
+            ]
         else:
             idx_blob = None
 
@@ -232,7 +239,7 @@ class VBObject:
         offset: int = 0
         for i, (_name, atype, comps, _flags) in enumerate(self.attribs):
             if i == 0:
-                ai = vertex_index
+                ai: int = vertex_index
             elif i == 1:
                 ai = normal_index
             elif i == 2:
@@ -280,7 +287,7 @@ class VBObject:
         GL.glBindVertexArray(self.vao)
         if instances:
             if self.num_indices:
-                element_size = (
+                element_size: int = (
                     2 if self.index_type == GL.GL_UNSIGNED_SHORT else 4
                 )
                 GL.glDrawElementsInstanced(
@@ -296,7 +303,7 @@ class VBObject:
                 )
         else:
             if self.num_indices:
-                element_size = (
+                element_size: int = (
                     2 if self.index_type == GL.GL_UNSIGNED_SHORT else 4
                 )
                 GL.glDrawElements(

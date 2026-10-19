@@ -15,7 +15,7 @@ import numpy as np
 
 # Auto-generated from this repo's include/Shapes/Teapot.h.
 # 306 control vertices × 3 floats.
-_VERTS = (
+_VERTS: tuple[tuple[float, float, float], ...] = (
     (1.4, 2.4, 0),
     (1.4, 2.4, 0.784),
     (0.784, 2.4, 1.4),
@@ -328,7 +328,7 @@ _VERTS = (
 # 32 patches × 16 indices into _VERTS. Some patches use the same
 # control point repeated 4× to form a degenerate "cone tip" — that's
 # why you see ``(269, 269, 269, 269, …)`` and ``(203, 203, 203, 203, …)``.
-_INDICES = (
+_INDICES: tuple[tuple[int, ...], ...] = (
     (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15),
     (3, 16, 17, 18, 7, 19, 20, 21, 11, 22, 23, 24, 15, 25, 26, 27),
     (18, 28, 29, 30, 21, 31, 32, 33, 24, 34, 35, 36, 27, 37, 38, 39),
@@ -715,5 +715,5 @@ def load() -> Tuple[np.ndarray, np.ndarray]:
     if len(_INDICES) != 32:
         raise ValueError(f"expected 32 patches, got {len(_INDICES)}")
     vertices: np.ndarray = np.array(_VERTS, dtype=np.float32)
-    indices = np.array(_INDICES, dtype=np.uint32).reshape(-1)
+    indices: np.ndarray = np.array(_INDICES, dtype=np.uint32).reshape(-1)
     return vertices, indices

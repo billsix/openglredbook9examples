@@ -35,7 +35,7 @@ class GouraudFloat(application.Application):
         # color (vec3 float) + position (vec2 float). Stride = 20 bytes.
         stride: int = 12 + 8
 
-        records = [
+        records: list[tuple[float, float, float, float, float]] = [
             (1.00, 0.00, 0.00, -0.90, -0.90),
             (0.00, 1.00, 0.00, 0.85, -0.90),
             (0.00, 0.00, 1.00, -0.90, 0.85),

@@ -25,7 +25,7 @@ from OpenGL.constant import Constant
 #: resolve to `OpenGL.constant.Constant`, not `int`, so a plain `int`
 #: annotation rejects them. Same house pattern as
 #: src/modelviewprojection/wxapp.py.
-GLenum = int | Constant
+type GLenum = int | Constant
 
 DDS_MAGIC: int = 0x20534444  # 'DDS '
 
@@ -59,10 +59,10 @@ def _fourcc(s: str) -> int:
     return struct.unpack("<I", s.encode("ascii"))[0]
 
 
-_FCC_DXT1 = _fourcc("DXT1")
-_FCC_DXT3 = _fourcc("DXT3")
-_FCC_DXT5 = _fourcc("DXT5")
-_FCC_DX10 = _fourcc("DX10")
+_FCC_DXT1: int = _fourcc("DXT1")
+_FCC_DXT3: int = _fourcc("DXT3")
+_FCC_DXT5: int = _fourcc("DXT5")
+_FCC_DX10: int = _fourcc("DX10")
 
 
 # Numeric ``dwFourCC`` values used by some old D3D9 tools — they pack a
@@ -83,13 +83,13 @@ _D3DFMT: dict[int, tuple[str, str, int]] = {
 # Subset of DXGI_FORMAT enum values used by DX10-extended DDS files in
 # the redbook9 media tree. Each value maps to (kind, internal_format,
 # pixel_format, pixel_type, bpp_or_block_size).
-_DXGI_FORMAT_R32G32B32A32_FLOAT = 2
-_DXGI_FORMAT_R16G16B16A16_FLOAT = 10
-_DXGI_FORMAT_R8G8B8A8_UNORM = 28
-_DXGI_FORMAT_R8_UNORM = 61
-_DXGI_FORMAT_BC1_UNORM = 71
-_DXGI_FORMAT_BC2_UNORM = 74
-_DXGI_FORMAT_BC3_UNORM = 77
+_DXGI_FORMAT_R32G32B32A32_FLOAT: int = 2
+_DXGI_FORMAT_R16G16B16A16_FLOAT: int = 10
+_DXGI_FORMAT_R8G8B8A8_UNORM: int = 28
+_DXGI_FORMAT_R8_UNORM: int = 61
+_DXGI_FORMAT_BC1_UNORM: int = 71
+_DXGI_FORMAT_BC2_UNORM: int = 74
+_DXGI_FORMAT_BC3_UNORM: int = 77
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
@@ -114,8 +114,8 @@ def _level_byte_size(
     width: int, height: int, format_kind: str, block_size: int, bpp: int
 ) -> int:
     if format_kind == "compressed":
-        bw = max(1, (width + 3) // 4)
-        bh = max(1, (height + 3) // 4)
+        bw: int = max(1, (width + 3) // 4)
+        bh: int = max(1, (height + 3) // 4)
         return bw * bh * block_size
     return width * height * bpp // 8
 
@@ -164,7 +164,7 @@ def load(path: str) -> DDS:
         pf_amask,
     ) = struct.unpack_from("<IIIIIIII", data, offset=pf_off)
 
-    caps_off = pf_off + 32
+    caps_off: int = pf_off + 32
     (caps1, caps2, _caps3, _caps4) = struct.unpack_from(
         "<IIII", data, offset=caps_off
     )
@@ -193,12 +193,12 @@ def load(path: str) -> DDS:
     #   4. RGB / RGBA bit-mask path.
     if dx10_dxgi is not None:
         if dx10_dxgi == _DXGI_FORMAT_R8_UNORM:
-            format_kind = "rgba"
-            internal_format = GL.GL_R8
-            pixel_format = GL.GL_RED
-            pixel_type = GL.GL_UNSIGNED_BYTE
-            bpp = 8
-            block_size = 0
+            format_kind: str = "rgba"
+            internal_format: GLenum = GL.GL_R8
+            pixel_format: GLenum | None = GL.GL_RED
+            pixel_type: GLenum | None = GL.GL_UNSIGNED_BYTE
+            bpp: int = 8
+            block_size: int = 0
         elif dx10_dxgi == _DXGI_FORMAT_R8G8B8A8_UNORM:
             format_kind = "rgba"
             internal_format = GL.GL_RGBA8
@@ -330,7 +330,7 @@ def load(path: str) -> DDS:
             f"DDS pixel format flags 0x{pf_flags:08X} not supported in {path!r}"
         )
 
-    num_faces = 6 if is_cubemap else 1
+    num_faces: int = 6 if is_cubemap else 1
     faces: list[list[bytes]] = []
     for _f in range(num_faces):
         levels: list[bytes] = []
@@ -347,9 +347,9 @@ def load(path: str) -> DDS:
                 sz *= d
             levels.append(bytes(data[cursor : cursor + sz]))
             cursor += sz
-            w = max(1, w // 2)
-            h = max(1, h // 2)
-            d = max(1, d // 2)
+            w: int = max(1, w // 2)
+            h: int = max(1, h // 2)
+            d: int = max(1, d // 2)
         faces.append(levels)
 
     return DDS(
@@ -370,7 +370,7 @@ def load(path: str) -> DDS:
 def upload_2d(path: str) -> int:
     """Load a 2D DDS as ``GL_TEXTURE_2D`` and return the texture
     name. Includes any mip levels stored in the file."""
-    dds = load(path)
+    dds: DDS = load(path)
     tex: int = GL.glGenTextures(1)
     GL.glBindTexture(GL.GL_TEXTURE_2D, tex)
     w, h = dds.width, dds.height
@@ -398,8 +398,8 @@ def upload_2d(path: str) -> int:
                 dds.pixel_type,
                 blob,
             )
-        w = max(1, w // 2)
-        h = max(1, h // 2)
+        w: int = max(1, w // 2)
+        h: int = max(1, h // 2)
     # No sampler state: like the C++ ``vglLoadTexture`` the uploader leaves
     # the GL defaults (``GL_NEAREST_MIPMAP_LINEAR`` / ``GL_REPEAT``) and each
     # demo sets exactly the parameters its C++ sets.
@@ -410,7 +410,7 @@ def upload_cubemap(path: str) -> int:
     """Load a cubemap DDS as ``GL_TEXTURE_CUBE_MAP``. Faces are read
     in DDS order (POSITIVEX, NEGATIVEX, POSITIVEY, NEGATIVEY,
     POSITIVEZ, NEGATIVEZ)."""
-    dds = load(path)
+    dds: DDS = load(path)
     if len(dds.faces) != 6:
         raise ValueError(f"{path!r} is not a cubemap DDS")
     targets: list[GLenum] = [
@@ -442,8 +442,8 @@ def upload_cubemap(path: str) -> int:
                     dds.pixel_type,
                     blob,
                 )
-            w = max(1, w // 2)
-            h = max(1, h // 2)
+            w: int = max(1, w // 2)
+            h: int = max(1, h // 2)
     # No sampler state, as ``vglLoadTexture`` (see ``upload_2d``); the C++
     # cubemap demo relies on the GL defaults plus GL_TEXTURE_CUBE_MAP_SEAMLESS.
     return tex
@@ -451,7 +451,7 @@ def upload_cubemap(path: str) -> int:
 
 def upload_3d(path: str) -> int:
     """Load a volume DDS as ``GL_TEXTURE_3D``."""
-    dds = load(path)
+    dds: DDS = load(path)
     tex: int = GL.glGenTextures(1)
     GL.glBindTexture(GL.GL_TEXTURE_3D, tex)
     w, h, d = dds.width, dds.height, dds.depth
@@ -481,9 +481,9 @@ def upload_3d(path: str) -> int:
                 dds.pixel_type,
                 blob,
             )
-        w = max(1, w // 2)
-        h = max(1, h // 2)
-        d = max(1, d // 2)
+        w: int = max(1, w // 2)
+        h: int = max(1, h // 2)
+        d: int = max(1, d // 2)
     # No sampler state, as ``vglLoadTexture`` (see ``upload_2d``). In
     # particular the wrap mode stays at the GL default GL_REPEAT: the volume
     # demo rotates its texture coordinates out of [0,1]^3 and the C++ tiles

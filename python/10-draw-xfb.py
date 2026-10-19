@@ -244,7 +244,7 @@ class DrawXfb(application.Application):
         GL.glDisable(GL.GL_RASTERIZER_DISCARD)
 
         # Render the two streams.
-        colors = [
+        colors: list[np.ndarray] = [
             np.array([0.8, 0.8, 0.9, 0.5], dtype=np.float32),
             np.array([0.3, 1.0, 0.3, 0.8], dtype=np.float32),
         ]

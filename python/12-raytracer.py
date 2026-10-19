@@ -20,8 +20,8 @@ import OpenGL.GL as GL
 from redbook9 import application, common
 
 OUTPUT_LODS: int = 9
-OUTPUT_SIZE_X = 1 << OUTPUT_LODS
-OUTPUT_SIZE_Y = 1 << OUTPUT_LODS
+OUTPUT_SIZE_X: int = 1 << OUTPUT_LODS
+OUTPUT_SIZE_Y: int = 1 << OUTPUT_LODS
 
 
 RAY_ELEMENT: str = """\
@@ -33,7 +33,7 @@ struct RAY
 };
 """
 
-INIT_SOURCE = (
+INIT_SOURCE: str = (
     """\
 #version 430 core
 
@@ -82,7 +82,7 @@ void main(void)
 """
 )
 
-TRACE_SOURCE = """\
+TRACE_SOURCE: str = """\
 #version 430 core
 
 layout (local_size_x = 16, local_size_y = 16) in;
@@ -233,7 +233,7 @@ class RayTracer(application.Application):
         GL.glDispatchCompute(OUTPUT_SIZE_X // 16, OUTPUT_SIZE_Y // 16, 1)
 
         # Reset atomic counters to 0,0.
-        zeros = np.zeros(2, dtype=np.uint32)
+        zeros: np.ndarray = np.zeros(2, dtype=np.uint32)
         GL.glBindBufferBase(GL.GL_ATOMIC_COUNTER_BUFFER, 0, self.counter_buffer)
         GL.glBufferData(
             target=GL.GL_ATOMIC_COUNTER_BUFFER,

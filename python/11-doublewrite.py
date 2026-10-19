@@ -155,7 +155,7 @@ class DoubleWrite(application.Application):
             common.media_path("shaders", "doublewrite", "double_write.vs.glsl"),
             mode="r",
         ) as f:
-            vs_source = f.read()
+            vs_source: str = f.read()
 
         fs_source: str = """\
 #version 430 core

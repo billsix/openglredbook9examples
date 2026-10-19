@@ -305,7 +305,7 @@ def run(cls: type, title: str = "OpenGL Red Book 9e") -> None:
         print("Failed to initialize GLFW", file=sys.stderr)  # noqa: T201
         return
 
-    app = cls()
+    app: Application = cls()
     try:
         # Open at the C++'s window size: ``vermilion.cpp``'s ``Initialize``
         # creates an 800x600 window for every demo, and the NDC demos, the

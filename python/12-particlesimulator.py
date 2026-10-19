@@ -44,7 +44,7 @@ def _random_vectors(
 
 
 def _particle_count() -> int:
-    env = os.environ.get("REDBOOK9_PARTICLE_GROUPS")
+    env: str | None = os.environ.get("REDBOOK9_PARTICLE_GROUPS")
     return PARTICLE_GROUP_SIZE * int(env if env else DEFAULT_GROUP_COUNT)
 
 
@@ -141,7 +141,7 @@ class ComputeParticleSimulator(application.Application):
         self.render_vao: int = GL.glGenVertexArrays(1)
         GL.glBindVertexArray(self.render_vao)
 
-        rng = np.random.RandomState(0xFFFF0C59)
+        rng: np.random.RandomState = np.random.RandomState(0xFFFF0C59)
 
         # Position buffer.
         self.position_buffer: int = GL.glGenBuffers(1)
@@ -240,12 +240,12 @@ class ComputeParticleSimulator(application.Application):
 
     @override
     def display(self, auto_redraw: bool = True) -> None:
-        current_ticks = self.app_time()
+        current_ticks: int = self.app_time()
         # Note: C++ has the subtraction inverted (start - current),
         # which produces a slowly-increasing-and-wrapping value because
         # of the `& 0xFFFFF` mask. Match it.
-        time = ((self._start_ticks - current_ticks) & 0xFFFFF) / 0xFFFFF
-        delta_time = (current_ticks - self._last_ticks) * 0.075
+        time: float = ((self._start_ticks - current_ticks) & 0xFFFFF) / 0xFFFFF
+        delta_time: float = (current_ticks - self._last_ticks) * 0.075
         if delta_time < 0.01:
             return
 

@@ -58,10 +58,10 @@ def _solid_level(color_rgba8: int, size: int) -> np.ndarray:
     so the BMP order matches the C++ which packs as 0xAA_RR_GG_BB on
     little-endian → bytes [BB, GG, RR, AA]. We translate to standard
     R,G,B,A by reading the components explicitly."""
-    a = (color_rgba8 >> 24) & 0xFF
-    r = (color_rgba8 >> 0) & 0xFF
-    g = (color_rgba8 >> 8) & 0xFF
-    b = (color_rgba8 >> 16) & 0xFF
+    a: int = (color_rgba8 >> 24) & 0xFF
+    r: int = (color_rgba8 >> 0) & 0xFF
+    g: int = (color_rgba8 >> 8) & 0xFF
+    b: int = (color_rgba8 >> 16) & 0xFF
     arr: np.ndarray = np.zeros((size, size, 4), dtype=np.uint8)
     arr[..., 0] = r
     arr[..., 1] = g
@@ -170,8 +170,8 @@ class MipmapExample(application.Application):
         GL.glBindTexture(GL.GL_TEXTURE_2D, self.tex)
         GL.glTexStorage2D(GL.GL_TEXTURE_2D, 7, GL.GL_RGBA8, 64, 64)
         for i, c in enumerate(colors):
-            size = 64 >> i
-            data = _solid_level(color_rgba8=c, size=size)
+            size: int = 64 >> i
+            data: np.ndarray = _solid_level(color_rgba8=c, size=size)
             GL.glTexSubImage2D(
                 GL.GL_TEXTURE_2D,
                 i,
@@ -209,7 +209,7 @@ class MipmapExample(application.Application):
         GL.glDisable(GL.GL_CULL_FACE)
         GL.glUseProgram(self.program)
 
-        tc = vmath.translate(x=0.0, y=0.0, z=-60.0) @ vmath.rotate(
+        tc: np.ndarray = vmath.translate(x=0.0, y=0.0, z=-60.0) @ vmath.rotate(
             angle_degrees=80.0 * 3.0 * 0.03, ax=1, ay=0, az=0
         )
         tc = (

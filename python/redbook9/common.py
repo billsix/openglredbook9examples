@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import ctypes
 import os
-from typing import Iterable, Optional, Sequence
+from typing import Final, Iterable, Optional, Sequence
 
 import OpenGL.GL as GL
 from OpenGL.constant import Constant
@@ -30,22 +30,26 @@ from . import window
 #: resolve to `OpenGL.constant.Constant`, not `int`, so a plain `int`
 #: annotation rejects them. Same house pattern as
 #: src/modelviewprojection/wxapp.py.
-GLenum = int | Constant
+type GLenum = int | Constant
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
+_HERE: str = os.path.dirname(os.path.abspath(__file__))
 
 # Re-export the vendored window/menubar/camera helpers (from window.py).
-Camera = window.Camera
-SceneObject = window.SceneObject
-WindowState = window.WindowState
-apply_camera = window.apply_camera
-bind_camera_inputs = window.bind_camera_inputs
-draw_camera_controls = window.draw_camera_controls
-draw_menubar = window.draw_menubar
-init_imgui = window.init_imgui
-resolve_default_window_size = window.resolve_default_window_size
-toggle_fullscreen = window.toggle_fullscreen
-update_camera = window.update_camera
+# The class re-exports carry an explicit ``type[...]``; the function
+# re-exports use ``Final`` to preserve each function's exact (and, for
+# ``draw_menubar``, keyword-only) signature, which a ``Callable[...]``
+# alias cannot express.
+Camera: type[window.Camera] = window.Camera
+SceneObject: type[window.SceneObject] = window.SceneObject
+WindowState: type[window.WindowState] = window.WindowState
+apply_camera: Final = window.apply_camera
+bind_camera_inputs: Final = window.bind_camera_inputs
+draw_camera_controls: Final = window.draw_camera_controls
+draw_menubar: Final = window.draw_menubar
+init_imgui: Final = window.init_imgui
+resolve_default_window_size: Final = window.resolve_default_window_size
+toggle_fullscreen: Final = window.toggle_fullscreen
+update_camera: Final = window.update_camera
 
 
 # ---------------------------------------------------------------------------
@@ -70,7 +74,7 @@ def _find_media_dir() -> tuple[str | None, list[str]]:
     list of every concrete path we checked, useful for error messages.
     """
     tried: list[str] = []
-    env = os.environ.get("REDBOOK9_MEDIA")
+    env: str | None = os.environ.get("REDBOOK9_MEDIA")
     if env:
         tried.append(f"$REDBOOK9_MEDIA={env}")
         if os.path.isdir(env):
@@ -95,9 +99,9 @@ def _find_media_dir() -> tuple[str | None, list[str]]:
 
     # Walk up looking for a sibling/cousin checkout of the C repo under
     # either name it gets cloned as.
-    current = _HERE
+    current: str = _HERE
     for _ in range(12):
-        parent = os.path.dirname(current)
+        parent: str = os.path.dirname(current)
         if parent == current:
             break
         for name in ("openglredbook9", "redbook9"):
@@ -108,7 +112,7 @@ def _find_media_dir() -> tuple[str | None, list[str]]:
         current = parent
 
     # A few extra plausible locations on a typical dev box.
-    home = os.path.expanduser("~")
+    home: str = os.path.expanduser("~")
     extras: list[str] = [
         os.path.join(home, "opt", "openglredbook9", "bin", "media"),
         os.path.join(home, "opt", "redbook9", "bin", "media"),
@@ -134,7 +138,7 @@ def media_path(*relative: str) -> str:
     ``FileNotFoundError`` if no media directory was found, listing
     every path we checked so the user can see why."""
     if MEDIA_DIR is None:
-        tried = "\n    ".join(_MEDIA_TRIED) if _MEDIA_TRIED else "(none)"
+        tried: str = "\n    ".join(_MEDIA_TRIED) if _MEDIA_TRIED else "(none)"
         raise FileNotFoundError(
             "Red Book 9e media directory not found.\n\n"
             "Tried in order:\n    " + tried + "\n\n"
@@ -166,7 +170,9 @@ def _ensure_binding_qualifier_version(source: str) -> str:
         return source
     import re
 
-    m = re.search(r"^\s*#version\s+(\d+)\s+core", source, flags=re.MULTILINE)
+    m: re.Match[str] | None = re.search(
+        r"^\s*#version\s+(\d+)\s+core", source, flags=re.MULTILINE
+    )
     if not m:
         return source
     ver: int = int(m.group(1))
@@ -190,7 +196,7 @@ def compile_shader(source: str, shader_type: GLenum) -> int:
     GL.glCompileShader(shader)
     status: int = GL.glGetShaderiv(shader=shader, pname=GL.GL_COMPILE_STATUS)
     if not status:
-        log = GL.glGetShaderInfoLog(shader).decode(errors="replace")
+        log: str = GL.glGetShaderInfoLog(shader).decode(errors="replace")
         GL.glDeleteShader(shader)
         raise ShaderError(f"shader compile failed: {log}")
     return shader
@@ -229,12 +235,18 @@ def link_program(
         encoded: list[bytes] = [
             v.encode("ascii") if isinstance(v, str) else v for v in tf_varyings
         ]
-        _buffers = [ctypes.create_string_buffer(s) for s in encoded]
-        lp_char = ctypes.POINTER(ctypes.c_char)
-        ptrs = (lp_char * len(_buffers))(
-            *[ctypes.cast(b, lp_char) for b in _buffers]
+        _buffers: list[ctypes.Array[ctypes.c_char]] = [
+            ctypes.create_string_buffer(s) for s in encoded
+        ]
+        lp_char: type[ctypes._Pointer[ctypes.c_char]] = ctypes.POINTER(
+            ctypes.c_char
         )
-        names_ptr = ctypes.cast(ptrs, ctypes.POINTER(lp_char))
+        ptrs: ctypes.Array[ctypes._Pointer[ctypes.c_char]] = (
+            lp_char * len(_buffers)
+        )(*[ctypes.cast(b, lp_char) for b in _buffers])
+        names_ptr: ctypes._Pointer[ctypes._Pointer[ctypes.c_char]] = (
+            ctypes.cast(ptrs, ctypes.POINTER(lp_char))
+        )
         mode: GLenum = (
             tf_buffer_mode
             if tf_buffer_mode is not None
@@ -244,7 +256,7 @@ def link_program(
     GL.glLinkProgram(program)
     status: int = GL.glGetProgramiv(program, GL.GL_LINK_STATUS)
     if not status:
-        log = GL.glGetProgramInfoLog(program).decode(errors="replace")
+        log: str = GL.glGetProgramInfoLog(program).decode(errors="replace")
         GL.glDeleteProgram(program)
         raise ShaderError(f"program link failed: {log}")
     for s in shaders:
@@ -348,7 +360,7 @@ def load_texture_2d(filename: str, *, generate_mipmaps: bool = True) -> int:
     """
     from PIL import Image
 
-    img = Image.open(filename).convert("RGBA")
+    img: Image.Image = Image.open(filename).convert("RGBA")
     width, height = img.size
     # Pillow re-exports the Transpose enum members at module level at
     # runtime (verified: Pillow 11.3.0), but its stubs only declare
@@ -390,7 +402,7 @@ def load_cubemap(face_filenames: Sequence[str]) -> int:
     tex: int = GL.glGenTextures(1)
     GL.glBindTexture(GL.GL_TEXTURE_CUBE_MAP, tex)
     for target, fname in zip(targets, face_filenames):
-        img = Image.open(fname).convert("RGBA")
+        img: Image.Image = Image.open(fname).convert("RGBA")
         # Cubemaps are notoriously orientation-sensitive; do NOT flip.
         # The C++ side uploads raw DDS face order without flipping.
         w, h = img.size

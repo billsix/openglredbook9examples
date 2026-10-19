@@ -154,7 +154,8 @@ class TeapotExample(application.Application):
         )
         if imgui.button("Reset to 1 (R)"):
             inner, outer = 1.0, 1.0
-            changed_inner = changed_outer = True
+            changed_inner: bool = True
+            changed_outer: bool = True
         changed_mode, wire = imgui.checkbox(
             label="Wireframe (M)", v=self._mode == GL.GL_LINE
         )

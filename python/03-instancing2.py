@@ -175,9 +175,9 @@ class Instancing2Example(application.Application):
         # expects 4 columns of 4 floats each. We build numpy
         # row-major then transpose into the buffer.
         for n in range(INSTANCE_COUNT):
-            a = 50.0 * n / 4.0
-            b = 50.0 * n / 5.0
-            c = 50.0 * n / 6.0
+            a: float = 50.0 * n / 4.0
+            b: float = 50.0 * n / 5.0
+            c: float = 50.0 * n / 6.0
             m: np.ndarray = (
                 vmath.rotate(angle_degrees=a + t * 360.0, ax=1, ay=0, az=0)
                 @ vmath.rotate(angle_degrees=b + t * 360.0, ax=0, ay=1, az=0)

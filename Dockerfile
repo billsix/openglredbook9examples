@@ -62,7 +62,7 @@ RUN  --mount=type=cache,target=/var/cache/libdnf5 \
     export VIRTUAL_ENV_DISABLE_PROMPT=1 && \
     source /venv/bin/activate && \
     dnf install -y libatomic && \
-    uv pip install setuptools && \
+    uv pip install setuptools ty && \
     uv pip install --python "$(which python)" -r /requirements.txt && \
     rm /requirements.txt
 

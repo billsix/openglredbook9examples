@@ -33,7 +33,8 @@ GITCONFIG_MOUNT := $(shell if [ -f $(GITCONFIG_REAL_PATH) ]; then echo "-v $(GIT
 # relabel: the mounted tree includes the ~266 MB bin/media, expensive to relabel
 # and shared with the host, so SELinux confinement is turned off for the (local,
 # dev) container rather than relabel the repo.
-FILES_TO_MOUNT = -v $(REPO_ROOT):$(REPO_MOUNT) \
+FILES_TO_MOUNT = --security-opt label=disable \
+                 -v $(REPO_ROOT):$(REPO_MOUNT) \
                  -v $(CURDIR)/entrypoint/entrypoint.sh:/entrypoint.sh \
                  -v $(CURDIR)/entrypoint/shell.sh:/usr/local/bin/shell.sh \
                  -v $(CURDIR)/entrypoint/loadpackages.sh:/usr/local/bin/loadpackages.sh \
@@ -41,8 +42,7 @@ FILES_TO_MOUNT = -v $(REPO_ROOT):$(REPO_MOUNT) \
                  $(GITCONFIG_MOUNT)
 
 USE_X = -e DISPLAY=$(DISPLAY) \
-        -v /tmp/.X11-unix:/tmp/.X11-unix \
-        --security-opt label=disable
+        -v /tmp/.X11-unix:/tmp/.X11-unix
 
 WAYLAND_FLAGS_FOR_CONTAINER = -e "XDG_SESSION_TYPE=wayland" \
                               -e "WAYLAND_DISPLAY=${WAYLAND_DISPLAY}" \
@@ -105,6 +105,35 @@ check: ## Import every Python demo module (no display): make check
 	$(CONTAINER_CMD) run $(PODMAN_RUN_FLAGS) --rm \
 		$(FILES_TO_MOUNT) \
 		$(CONTAINER_NAME)
+
+# Read-only type gate: ty (correctness) over the redbook9 package + every demo,
+# plus tools/check_local_annotations.py (completeness -- the "annotate every
+# binding" rule ty can't enforce). Editable-install first so `from redbook9
+# import ...` resolves. Every step runs and the target fails if ANY failed
+# (s=1 accumulates). `$$s`/`$$(...)` are literal `$` for the shell.
+.PHONY: type-check
+type-check: ## Type-check the Python port: ty + annotate-every-binding checker
+	$(CONTAINER_CMD) run $(PODMAN_RUN_FLAGS) --rm \
+		--entrypoint /bin/bash \
+		$(FILES_TO_MOUNT) \
+		$(CONTAINER_NAME) \
+		-c 'source /venv/bin/activate && cd $(PKG_DIR) && \
+		    uv pip install --no-deps --no-index --no-build-isolation -e . \
+		        --python "$$(which python)" >/dev/null; \
+		    s=0; \
+		    ty check redbook9 || s=1; \
+		    ty check *.py || s=1; \
+		    cd $(REPO_MOUNT) && \
+		    python tools/check_local_annotations.py --include-module python || s=1; \
+		    exit $$s'
+
+.PHONY: format
+format: ## Format the Python port (ruff check --fix + ruff format) in the container
+	$(CONTAINER_CMD) run $(PODMAN_RUN_FLAGS) --rm \
+		--entrypoint /bin/bash \
+		$(FILES_TO_MOUNT) \
+		$(CONTAINER_NAME) \
+		-c 'cd $(REPO_MOUNT) && bash entrypoint/format.sh'
 
 .PHONY: build-c
 build-c: ## Build the C examples in the container (into /opt/rb9-build/bin)

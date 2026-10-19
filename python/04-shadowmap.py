@@ -265,7 +265,7 @@ class ShadowMapExample(application.Application):
 
         # ---- Depth pass -------------------------------------------
         GL.glUseProgram(self.render_light_prog)
-        light_mvp = light_proj @ light_view @ scene_model
+        light_mvp: np.ndarray = light_proj @ light_view @ scene_model
         vmath.upload(location=self.u_light_mvp, mat=light_mvp)
 
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.depth_fbo)
